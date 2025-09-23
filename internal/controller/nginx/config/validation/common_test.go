@@ -149,5 +149,7 @@ func TestValidatePathInRegexMatch(t *testing.T) {
 		`/foo(?<!bar)`,
 		`(\w+)\1$`,
 		`(\w+)\2$`,
+		`/foo/(?P<bad-name>[0-9]+)`,
+		`/foo/(?P<bad name>[0-9]+)`,
 	)
 }

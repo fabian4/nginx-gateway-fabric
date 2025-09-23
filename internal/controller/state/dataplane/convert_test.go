@@ -551,6 +551,10 @@ func TestConvertPathType(t *testing.T) {
 			expected: PathTypeRegularExpression,
 			pathType: v1.PathMatchRegularExpression,
 		},
+		{
+			pathType: v1.PathMatchType("InvalidType"),
+			panic:    true,
+		},
 	}
 
 	for _, tc := range tests {

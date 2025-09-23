@@ -2682,7 +2682,7 @@ func TestCreateLocationsPath(t *testing.T) {
 			},
 		},
 		{
-			Path:     "^/path/(.*)$",
+			Path:     "^/regular-expression-path/(.*)$",
 			PathType: dataplane.PathTypeRegularExpression,
 			MatchRules: []dataplane.MatchRule{
 				{
@@ -2728,7 +2728,7 @@ func TestCreateLocationsPath(t *testing.T) {
 					Type:            http.ExternalLocationType,
 				},
 				{
-					Path:            "~ ^/path/(.*)$",
+					Path:            "~ ^/regular-expression-path/(.*)$",
 					ProxyPass:       "http://test_foo_80$request_uri",
 					ProxySetHeaders: httpBaseHeaders,
 					Type:            http.ExternalLocationType,

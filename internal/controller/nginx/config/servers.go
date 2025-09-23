@@ -997,23 +997,15 @@ func exactPath(path string) string {
 	return fmt.Sprintf("= %s", path)
 }
 
-func prefixPath(path string) string {
-	return fmt.Sprintf("^~ %s", path)
-}
-
-func regularExpressionPath(path string) string {
-	return fmt.Sprintf("~ %s", path)
-}
-
 // createPath builds the location path depending on the path type.
 func createPath(rule dataplane.PathRule) string {
 	switch rule.PathType {
 	case dataplane.PathTypeExact:
 		return exactPath(rule.Path)
 	case dataplane.PathTypePrefix:
-		return prefixPath(rule.Path)
+		return fmt.Sprintf("^~ %s", rule.Path)
 	case dataplane.PathTypeRegularExpression:
-		return regularExpressionPath(rule.Path)
+		return fmt.Sprintf("~ %s", rule.Path)
 	default:
 		return "" // should never happen because path type is validated earlier
 	}
