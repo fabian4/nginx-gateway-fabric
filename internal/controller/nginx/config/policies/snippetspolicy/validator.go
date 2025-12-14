@@ -75,6 +75,8 @@ func (v *Validator) Conflicts(polA, polB policies.Policy) bool {
 	return false
 }
 
+const maxSnippetSize = 2048 // 2KB
+
 func validateSnippets(snippets []ngfAPI.Snippet) error {
 	seenContexts := make(map[ngfAPI.NginxContext]struct{})
 	for _, snippet := range snippets {
@@ -82,6 +84,14 @@ func validateSnippets(snippets []ngfAPI.Snippet) error {
 			return fmt.Errorf("duplicate context %q", snippet.Context)
 		}
 		seenContexts[snippet.Context] = struct{}{}
+
+		if snippet.Context == ngfAPI.NginxContextHTTPServerLocation {
+			return fmt.Errorf("context %q is not supported in SnippetsPolicy", snippet.Context)
+		}
+
+		if len(snippet.Value) > maxSnippetSize {
+			return fmt.Errorf("snippet value for context %q exceeds maximum size of %d bytes", snippet.Context, maxSnippetSize)
+		}
 	}
 	return nil
 }

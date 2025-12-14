@@ -93,6 +93,36 @@ func TestValidator_Validate(t *testing.T) {
 				conditions.NewPolicyInvalid("duplicate context \"main\""),
 			},
 		},
+		{
+			name: "unsupported context",
+			policy: createModifiedPolicy(func(p *ngfAPI.SnippetsPolicy) *ngfAPI.SnippetsPolicy {
+				p.Spec.Snippets = []ngfAPI.Snippet{
+					{
+						Context: ngfAPI.NginxContextHTTPServerLocation,
+						Value:   "location snippet",
+					},
+				}
+				return p
+			}),
+			expConditions: []conditions.Condition{
+				conditions.NewPolicyInvalid("context \"http.server.location\" is not supported in SnippetsPolicy"),
+			},
+		},
+		{
+			name: "snippet too large",
+			policy: createModifiedPolicy(func(p *ngfAPI.SnippetsPolicy) *ngfAPI.SnippetsPolicy {
+				p.Spec.Snippets = []ngfAPI.Snippet{
+					{
+						Context: ngfAPI.NginxContextMain,
+						Value:   string(make([]byte, 2049)),
+					},
+				}
+				return p
+			}),
+			expConditions: []conditions.Condition{
+				conditions.NewPolicyInvalid("snippet value for context \"main\" exceeds maximum size of 2048 bytes"),
+			},
+		},
 	}
 
 	v := snippetspolicy.NewValidator()
