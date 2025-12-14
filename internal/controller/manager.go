@@ -49,6 +49,7 @@ import (
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/clientsettings"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/observability"
+	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/snippetspolicy"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/upstreamsettings"
 	ngxvalidation "github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/validation"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/provisioner"
@@ -124,7 +125,7 @@ func StartManager(cfg config.Config) error {
 	mustExtractGVK := kinds.NewMustExtractGKV(scheme)
 
 	genericValidator := ngxvalidation.GenericValidator{}
-	policyManager := createPolicyManager(mustExtractGVK, genericValidator)
+	policyManager := createPolicyManager(cfg, mustExtractGVK, genericValidator)
 
 	plusSecrets, err := createPlusSecretMetadata(cfg, mgr.GetAPIReader())
 	if err != nil {
@@ -321,6 +322,7 @@ func StartManager(cfg config.Config) error {
 }
 
 func createPolicyManager(
+	cfg config.Config,
 	mustExtractGVK kinds.MustExtractGVK,
 	validator validation.GenericValidator,
 ) *policies.CompositeValidator {
@@ -337,6 +339,13 @@ func createPolicyManager(
 			GVK:       mustExtractGVK(&ngfAPIv1alpha1.UpstreamSettingsPolicy{}),
 			Validator: upstreamsettings.NewValidator(validator),
 		},
+	}
+
+	if cfg.SnippetsPolicies {
+		cfgs = append(cfgs, policies.ManagerConfig{
+			GVK:       mustExtractGVK(&ngfAPIv1alpha1.SnippetsPolicy{}),
+			Validator: snippetspolicy.NewValidator(),
+		})
 	}
 
 	return policies.NewManager(mustExtractGVK, cfgs...)
@@ -586,6 +595,17 @@ func registerControllers(
 		)
 	}
 
+	if cfg.SnippetsPolicies {
+		controllerRegCfgs = append(controllerRegCfgs,
+			ctlrCfg{
+				objectType: &ngfAPIv1alpha1.SnippetsPolicy{},
+				options: []controller.Option{
+					controller.WithK8sPredicate(k8spredicate.GenerationChangedPredicate{}),
+				},
+			},
+		)
+	}
+
 	for _, regCfg := range controllerRegCfgs {
 		name := regCfg.objectType.GetObjectKind().GroupVersionKind().Kind
 		if regCfg.name != "" {
@@ -788,6 +808,13 @@ func prepareFirstEventBatchPreparerArgs(cfg config.Config) ([]client.Object, []c
 		objectLists = append(
 			objectLists,
 			&ngfAPIv1alpha1.SnippetsFilterList{},
+		)
+	}
+
+	if cfg.SnippetsPolicies {
+		objectLists = append(
+			objectLists,
+			&ngfAPIv1alpha1.SnippetsPolicyList{},
 		)
 	}
 

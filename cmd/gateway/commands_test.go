@@ -163,6 +163,7 @@ func TestControllerCmdFlagValidation(t *testing.T) {
 				"--nginx-one-tls-skip-verify",
 				"--endpoint-picker-disable-tls",
 				"--endpoint-picker-tls-skip-verify",
+				"--snippets-policies",
 			},
 			wantErr: false,
 		},
@@ -414,6 +415,15 @@ func TestControllerCmdFlagValidation(t *testing.T) {
 				` parsing "not-a-bool": invalid syntax`,
 			args: []string{
 				"--snippets-filters=not-a-bool",
+			},
+			wantErr: true,
+		},
+		{
+			name: "snippets-policies is not a bool",
+			expectedErrPrefix: `invalid argument "not-a-bool" for "--snippets-policies" flag: strconv.ParseBool:` +
+				` parsing "not-a-bool": invalid syntax`,
+			args: []string{
+				"--snippets-policies=not-a-bool",
 			},
 			wantErr: true,
 		},
